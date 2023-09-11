@@ -46,18 +46,23 @@ class Table():
             for element in empty_element:
                 element.getparent().remove(element)
 
-    def remove_table(self, with_column_title, with_row_title, column_first):
+    def remove_table(self, with_column_title, with_row_title, column_first, ignore_cols, ignore_rows):
         if column_first:
             start_col_idx = 0
             if with_row_title:
                 start_col_idx = 1
             for col_idx in range(start_col_idx, self.column_count):
+                if col_idx in ignore_cols:
+                    continue
+
                 start_row_idx = 0
                 if with_column_title:
                     self._append_cell(self.table[0][col_idx])
                     start_row_idx = 1
 
                 for row_idx in range(start_row_idx, self.row_count):
+                    if row_idx in ignore_rows:
+                        continue
                     if with_row_title:
                         self._append_cell(self.table[row_idx][0])
                     self._append_cell(self.table[row_idx][col_idx])
@@ -66,12 +71,17 @@ class Table():
             if with_column_title:
                 start_row_idx = 1
             for row_idx in range(start_row_idx, self.row_count):
+                if row_idx in ignore_rows:
+                    continue
+
                 start_col_idx = 0
                 if with_row_title:
                     self._append_cell(self.table[row_idx][0])
                     start_col_idx = 1
 
                 for col_idx in range(start_col_idx, self.column_count):
+                    if col_idx in ignore_cols:
+                        continue
                     if with_column_title:
                         self._append_cell(self.table[0][col_idx])
                     self._append_cell(self.table[row_idx][col_idx])
@@ -83,11 +93,18 @@ def _get_tables(element_tree):
     return [Table(table) for table in element_tree.xpath('.//w:tbl[not(ancestor::w:tbl)]', namespaces=NSMAP)]
 
 
-def explode_all_tables(content_tree, with_column_title, with_row_title, column_first):
+def explode_all_tables(content_tree, with_column_title, with_row_title, column_first, ignore_cols, ignore_rows, limit):
     tables = _get_tables(content_tree)
+
+    processed_count = 0
     for table in tables:
         table.remove_table(
             with_column_title=with_column_title,
             with_row_title=with_row_title,
             column_first=column_first,
+            ignore_cols=[int(col_idx) - 1 for col_idx in ignore_cols.split(',')] if ignore_cols is not None else [],
+            ignore_rows=[int(row_idx) - 1 for row_idx in ignore_rows.split(',')] if ignore_rows is not None else [],
         )
+        processed_count += 1
+        if limit > 0 and processed_count >= limit:
+            break
