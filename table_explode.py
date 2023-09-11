@@ -1,22 +1,93 @@
+from copy import deepcopy
+
 from constants import NSMAP
+from helper import get_first_sub_element
+
+
+class Table():
+    def _read_table(self, table):
+        self.table = []
+        row_list = table.xpath('./w:tr', namespaces=NSMAP)
+        if not len(row_list):
+            return
+
+        for row in row_list:
+            cells = []
+            for cell in row.xpath('./w:tc', namespaces=NSMAP):
+                cells.append(cell)
+
+                grid_span = get_first_sub_element(cell, './w:tcPr/w:gridSpan/@w:val')
+                cell_span = int(str(grid_span)) if grid_span is not None else 1
+
+                for _ in range(cell_span - 1):
+                    cells.append(None)
+
+            self.table.append(cells)
+
+        self.column_count = len(self.table[0])
+        self.row_count = len(self.table)
+
+    def __init__(self, table):
+        self.old_table_element = table
+        self._read_table(table)
+
+    def _append_cell(self, cell):
+        if cell is None:
+            return
+
+        empty_element = []
+        for element in cell.xpath('./*[not(self::w:tcPr)]', namespaces=NSMAP):
+            if len(element.getchildren()) == 1 and bool(element.xpath('./w:pPr', namespaces=NSMAP)):
+                empty_element.append(element)
+                continue
+            self.old_table_element.addprevious(deepcopy(element))
+
+        if len(empty_element):
+            for element in empty_element:
+                element.getparent().remove(element)
+
+    def remove_table(self, with_column_title, with_row_title, column_first):
+        if column_first:
+            start_col_idx = 0
+            if with_row_title:
+                start_col_idx = 1
+            for col_idx in range(start_col_idx, self.column_count):
+                start_row_idx = 0
+                if with_column_title:
+                    self._append_cell(self.table[0][col_idx])
+                    start_row_idx = 1
+
+                for row_idx in range(start_row_idx, self.row_count):
+                    if with_row_title:
+                        self._append_cell(self.table[row_idx][0])
+                    self._append_cell(self.table[row_idx][col_idx])
+        else:
+            start_row_idx = 0
+            if with_column_title:
+                start_row_idx = 1
+            for row_idx in range(start_row_idx, self.row_count):
+                start_col_idx = 0
+                if with_row_title:
+                    self._append_cell(self.table[row_idx][0])
+                    start_col_idx = 1
+
+                for col_idx in range(start_col_idx, self.column_count):
+                    if with_column_title:
+                        self._append_cell(self.table[0][col_idx])
+                    self._append_cell(self.table[row_idx][col_idx])
+
+        self.old_table_element.getparent().remove(self.old_table_element)
 
 
 def _get_tables(element_tree):
-    return element_tree.findall('.//w:tbl', namespaces=NSMAP)
+    return [Table(table) for table in element_tree.xpath('.//w:tbl[not(ancestor::w:tbl)]', namespaces=NSMAP)]
 
 
-def _remove_table(table):
-    for row in table.xpath('.//w:tr', namespaces=NSMAP):
-        # print('row', row)
-        for cell in row.xpath('.//w:tc', namespaces=NSMAP):
-            # print('cell', cell)
-            for element in cell.xpath('.//w:p | .//w:tbl', namespaces=NSMAP):
-                # print('element', element)
-                table.addprevious(element)
-    table.getparent().remove(table)
-
-
-def explode_all_tables(content_tree):
+def explode_all_tables(content_tree, with_column_title, with_row_title, column_first):
     tables = _get_tables(content_tree)
     for table in tables:
-        _remove_table(table)
+        table.remove_table(
+            with_column_title=with_column_title,
+            with_row_title=with_row_title,
+            column_first=column_first,
+        )
