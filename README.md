@@ -13,10 +13,10 @@ That said D-Mail had stuck in my spam folder for multiple months now (nice try G
 # Usage
 
 ```
-usage: main.py [-h] [--with-column-title] [--with-row-title] [--column-first] [--ignore-column IGNORE_COLUMN] [--ignore-row IGNORE_ROW] [--limit LIMIT] path
+usage: main.py [-h] [--with-column-title] [--with-row-title] [--column-first] [--ignore-column IGNORE_COLUMN] [--ignore-row IGNORE_ROW] [--limit LIMIT] [--remove-old-file] path
 
 positional arguments:
-  path                  Path to the file that need to be processed
+  path                  Path to the file or folder that need to be processed
 
 options:
   -h, --help            show this help message and exit
@@ -28,6 +28,7 @@ options:
   --ignore-row IGNORE_ROW
                         Ignore these rows, separated by comma (count from 1)
   --limit LIMIT         Only process the first n table(s)
+  --remove-old-file     User this flag if you want to delete the old file after processing
 ```
 
 # License
