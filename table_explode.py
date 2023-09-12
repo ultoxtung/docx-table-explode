@@ -102,8 +102,8 @@ def explode_all_tables(content_tree, with_column_title, with_row_title, column_f
             with_column_title=with_column_title,
             with_row_title=with_row_title,
             column_first=column_first,
-            ignore_cols=[int(col_idx) - 1 for col_idx in ignore_cols.split(',')] if ignore_cols is not None else [],
-            ignore_rows=[int(row_idx) - 1 for row_idx in ignore_rows.split(',')] if ignore_rows is not None else [],
+            ignore_cols=[int(col_idx) - 1 for col_idx in ignore_cols.split(',')] if ignore_cols != '' else [],
+            ignore_rows=[int(row_idx) - 1 for row_idx in ignore_rows.split(',')] if ignore_rows != '' else [],
         )
         processed_count += 1
         if limit > 0 and processed_count >= limit:

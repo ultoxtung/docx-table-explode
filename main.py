@@ -13,11 +13,11 @@ def main():
     parser.add_argument('--with-row-title', action='store_true',
                         help='Use this flag if table has first column used as row title')
     parser.add_argument('--column-first', action='store_true',
-                        help='Use this flag if you want to explode by each column, not row')
-    parser.add_argument('--ignore-column', action='store',
-                        help='Ignore these columns, separated by comma')
-    parser.add_argument('--ignore-row', action='store',
-                        help='Ignore these rows, separated by comma')
+                        help='Use this flag for exploding by column first then row, default is row before column')
+    parser.add_argument('--ignore-column', action='store', default='',
+                        help='Ignore these columns, separated by comma (count from 1)')
+    parser.add_argument('--ignore-row', action='store', default='',
+                        help='Ignore these rows, separated by comma (count from 1)')
     parser.add_argument('--limit', action='store', default=0, type=int,
                         help='Only process the first n table(s)')
     args = parser.parse_args()
